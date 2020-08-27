@@ -357,5 +357,14 @@
                 type="Bolt\Boltpay\Plugin\Magento\TogglePaymentMethodsPlugin"
                 sortOrder="1"/>
     </type>
-
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+            <argument name="sensitive" xsi:type="array">
+                <item name="payment/boltpay/api_key" xsi:type="string">1</item>
+                <item name="payment/boltpay/signing_secret" xsi:type="string">1</item>
+                <item name="payment/boltpay/publishable_key_payment" xsi:type="string">1</item>
+                <item name="payment/boltpay/publishable_key_back_office" xsi:type="string">1</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
