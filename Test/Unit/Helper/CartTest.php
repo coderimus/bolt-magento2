@@ -39,7 +39,6 @@ use Magento\Framework\DB\Adapter\Pdo\Mysql;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Session\Generic as GenericSession;
 use Magento\Framework\Session\SessionManagerInterface;
@@ -84,9 +83,7 @@ use ReflectionException;
 use Zend_Http_Client_Exception;
 use Zend_Validate_Exception;
 use Bolt\Boltpay\Helper\FeatureSwitch\Decider as DeciderHelper;
-use Magento\Catalog\Model\Config\Source\Product\Thumbnail as ThumbnailSource;;
-use Magento\GroupedProduct\Block\Cart\Item\Renderer\Grouped as RendererGrouped;
-use Magento\ConfigurableProduct\Block\Cart\Item\Renderer\Configurable as RendererConfigurable;
+use Magento\Catalog\Model\Config\Source\Product\Thumbnail as ThumbnailSource;
 
 /**
  * @coversDefaultClass \Bolt\Boltpay\Helper\Cart

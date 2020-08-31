@@ -19,8 +19,6 @@ namespace Bolt\Boltpay\Block;
 
 use Bolt\Boltpay\Helper\Config;
 use Bolt\Boltpay\Helper\FeatureSwitch\Decider;
-use Magento\Checkout\Helper\Data;
-use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Bolt\Boltpay\Helper\Cart as CartHelper;
