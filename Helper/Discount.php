@@ -51,6 +51,7 @@ class Discount extends AbstractHelper
     const MAGEPLAZA_GIFTCARD = 'gift_card';
     const MAGEPLAZA_GIFTCARD_QUOTE_KEY = 'mp_gift_cards';
     const AHEADWORKS_STORE_CREDIT = 'aw_store_credit';
+    const AHEADWORKS_GIFT_CARD = 'aw_giftcard';
     const BSS_STORE_CREDIT = 'bss_storecredit';
     
     // Bolt discount category

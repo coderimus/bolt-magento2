@@ -209,7 +209,8 @@ class Cart extends AbstractHelper
         Discount::UNIRGY_GIFT_CERT => '',
         Discount::AMASTY_GIFTCARD => 'Gift Card ',
         Discount::GIFT_VOUCHER => '',
-        Discount::MAGEPLAZA_GIFTCARD => ''
+        Discount::MAGEPLAZA_GIFTCARD => '',
+        Discount::AHEADWORKS_GIFT_CARD => ''
     ];
     /////////////////////////////////////////////////////////////////////////////
 
@@ -2125,6 +2126,30 @@ class Cart extends AbstractHelper
                         $roundedDiscountAmount += $roundedAmount;
                         $discounts[] = $discountItem;
                     }                    
+                } elseif ($discount == Discount::AHEADWORKS_GIFT_CARD) {
+                    $giftcards = [];
+                    /** @var GiftcardQuoteInterface $giftcard */
+                    foreach ($totals[$discount]->getAwGiftcardCodes() as $giftcard) {
+                        if ($giftcard->isRemove()) {
+                            continue;
+                        }
+                        $giftCardAmount = $giftcard->getGiftcardAmount();
+                        $giftCardCode = $giftcard->getGiftcardCode();
+                        $amount = abs($giftCardAmount);
+                        $roundedAmount = CurrencyUtils::toMinor($amount, $currencyCode);
+
+                        $discountItem = [
+                            'description'       => 'Gift Card: ' . $giftCardCode,
+                            'amount'            => $roundedAmount,
+                            'discount_category' => Discount::BOLT_DISCOUNT_CATEGORY_GIFTCARD,
+                            'reference'         => $giftCardCode,
+                            'discount_type'     => $this->discountHelper->getBoltDiscountType('by_fixed'), // For v1/discounts.code.apply and v2/cart.update
+                            'type'              => $this->discountHelper->getBoltDiscountType('by_fixed'), // For v1/merchant/order
+                        ];
+                        $discountAmount += $amount;
+                        $roundedDiscountAmount += $roundedAmount;
+                        $discounts[] = $discountItem;
+                    }                  
                 } else {
                     $discountAmount = abs($amount);
                     $roundedDiscountAmount = CurrencyUtils::toMinor($discountAmount, $currencyCode);
