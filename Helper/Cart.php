@@ -2133,7 +2133,7 @@ class Cart extends AbstractHelper
                         if ($giftcard->isRemove()) {
                             continue;
                         }
-                        $giftCardAmount = $giftcard->getGiftcardAmount();
+                        $giftCardAmount = $giftcard->getGiftcardBalance();
                         $giftCardCode = $giftcard->getGiftcardCode();
                         $amount = abs($giftCardAmount);
                         $roundedAmount = CurrencyUtils::toMinor($amount, $currencyCode);
