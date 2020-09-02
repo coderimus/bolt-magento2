@@ -213,6 +213,10 @@
     <type name="Mirasvit\Rewards\Model\Purchase">
         <plugin name="Bolt_Boltpay_Mirasvit_Rewards_Model_PurchasePlugin" type="Bolt\Boltpay\Plugin\Mirasvit\Rewards\Model\PurchasePlugin" sortOrder="1" />
     </type>
+    
+    <type name="Mirasvit\Credit\Model\Total\Quote\Credit">
+        <plugin name="Bolt_Boltpay_Mirasvit_Store_Credit_Model_Total_Quote_CreditPlugin" type="Bolt\Boltpay\Plugin\Mirasvit\Credit\Model\Total\Quote\CreditPlugin" sortOrder="1" />
+    </type>
 
     <virtualType name="boltMageplazaGiftCardFactory" type="Bolt\Boltpay\Model\ThirdPartyModuleFactory">
         <arguments>
@@ -246,6 +250,20 @@
         <arguments>
             <argument name="moduleName" xsi:type="string">Aheadworks_StoreCredit</argument>
             <argument name="className" xsi:type="string">Aheadworks\StoreCredit\Api\CustomerStoreCreditManagementInterface</argument>
+        </arguments>
+    </virtualType>
+    
+    <virtualType name="boltAheadworksGiftcardRepository" type="Bolt\Boltpay\Model\ThirdPartyModuleFactory">
+        <arguments>
+            <argument name="moduleName" xsi:type="string">Aheadworks_Giftcard</argument>
+            <argument name="className" xsi:type="string">Aheadworks\Giftcard\Model\GiftcardRepository</argument>
+        </arguments>
+    </virtualType>
+    
+    <virtualType name="boltAheadworksGiftcardCartService" type="Bolt\Boltpay\Model\ThirdPartyModuleFactory">
+        <arguments>
+            <argument name="moduleName" xsi:type="string">Aheadworks_Giftcard</argument>
+            <argument name="className" xsi:type="string">Aheadworks\Giftcard\Model\Service\GiftcardCartService</argument>
         </arguments>
     </virtualType>
 
@@ -289,6 +307,8 @@
             <argument name="amastyRewardsResourceQuote" xsi:type="object">boltAmastyRewardsResourceQuote</argument>
             <argument name="amastyRewardsQuote" xsi:type="object">boltAmastyRewardsQuote</argument>
             <argument name="aheadworksCustomerStoreCreditManagement" xsi:type="object">boltAheadworksCustomerStoreCreditManagementInterface</argument>
+            <argument name="aheadworksGiftcardRepository" xsi:type="object">boltAheadworksGiftcardRepository</argument>
+            <argument name="aheadworksGiftcardCartService" xsi:type="object">boltAheadworksGiftcardCartService</argument>
             <argument name="bssStoreCreditCollection" xsi:type="object">boltBssStoreCreditCollection</argument>
             <argument name="bssStoreCreditHelper" xsi:type="object">boltBssStoreCreditHelper</argument>
             <argument name="moduleGiftCardAccount" xsi:type="object">boltMagentoGiftCardAccount</argument>

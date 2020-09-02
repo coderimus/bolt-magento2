@@ -344,6 +344,12 @@ class DiscountCodeValidation implements DiscountCodeValidationInterface
                 // Load the gift card by code
                 $giftCard = $this->discountHelper->loadMageplazaGiftCard($couponCode, $storeId);
             }
+            
+            // Apply Aheadworks Giftcard
+            if (empty($giftCard)) {
+                // Load the gift card by code
+                $giftCard = $this->discountHelper->loadAheadworksGiftcard($couponCode, $websiteId);
+            }
 
             $coupon = null;
             if (empty($giftCard)) {
@@ -730,6 +736,14 @@ class DiscountCodeValidation implements DiscountCodeValidationInterface
                 // Apply Mageplaza Gift Card to the parent quote
                 $this->discountHelper->applyMageplazaGiftCard($code, $immutableQuote);
                 $this->discountHelper->applyMageplazaGiftCard($code, $parentQuote);
+
+                $giftAmount = $giftCard->getBalance();
+            } elseif ($giftCard instanceof \Aheadworks\Giftcard\Model\Giftcard) {
+                $this->discountHelper->removeAheadworksGiftcard($code, $immutableQuote);
+                $this->discountHelper->removeAheadworksGiftcard($code, $parentQuote);
+
+                $this->discountHelper->applyAheadworksGiftcard($code, $immutableQuote);
+                $this->discountHelper->applyAheadworksGiftcard($code, $parentQuote);
 
                 $giftAmount = $giftCard->getBalance();
             } else {

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Bolt magento2 plugin
  *
@@ -171,6 +171,16 @@ class Discount extends AbstractHelper
      * @var ThirdPartyModuleFactory
      */
     protected $aheadworksCustomerStoreCreditManagement;
+    
+    /**
+     * @var ThirdPartyModuleFactory
+     */
+    protected $aheadworksGiftcardRepository;
+    
+    /**
+     * @var ThirdPartyModuleFactory
+     */
+    protected $aheadworksGiftcardCartService;
 
     /**
      * @var ThirdPartyModuleFactory
@@ -253,6 +263,8 @@ class Discount extends AbstractHelper
      * @param ThirdPartyModuleFactory $amastyRewardsResourceQuote
      * @param ThirdPartyModuleFactory $amastyRewardsQuote
      * @param ThirdPartyModuleFactory $aheadworksCustomerStoreCreditManagement
+     * @param ThirdPartyModuleFactory $aheadworksGiftcardRepository
+     * @param ThirdPartyModuleFactory $aheadworksGiftcardCartService
      * @param ThirdPartyModuleFactory $bssStoreCreditHelper
      * @param ThirdPartyModuleFactory $bssStoreCreditCollection
      * @param ThirdPartyModuleFactory $moduleGiftCardAccount
@@ -289,6 +301,8 @@ class Discount extends AbstractHelper
         ThirdPartyModuleFactory $amastyRewardsResourceQuote,
         ThirdPartyModuleFactory $amastyRewardsQuote,
         ThirdPartyModuleFactory $aheadworksCustomerStoreCreditManagement,
+        ThirdPartyModuleFactory $aheadworksGiftcardRepository,
+        ThirdPartyModuleFactory $aheadworksGiftcardCartService,
         ThirdPartyModuleFactory $bssStoreCreditHelper,
         ThirdPartyModuleFactory $bssStoreCreditCollection,
         ThirdPartyModuleFactory $moduleGiftCardAccount,
@@ -324,6 +338,8 @@ class Discount extends AbstractHelper
         $this->amastyRewardsResourceQuote = $amastyRewardsResourceQuote;
         $this->amastyRewardsQuote = $amastyRewardsQuote;
         $this->aheadworksCustomerStoreCreditManagement = $aheadworksCustomerStoreCreditManagement;
+        $this->aheadworksGiftcardRepository = $aheadworksGiftcardRepository;
+        $this->aheadworksGiftcardCartService = $aheadworksGiftcardCartService;
         $this->bssStoreCreditHelper = $bssStoreCreditHelper;
         $this->bssStoreCreditCollection = $bssStoreCreditCollection;
         $this->quoteRepository = $quoteRepository;
@@ -812,11 +828,12 @@ class Discount extends AbstractHelper
             /** @var \Mirasvit\Credit\Api\Config\CalculationConfigInterface $miravitCalculationConfig */
             $miravitCalculationConfig = $this->mirasvitStoreCreditCalculationConfig->getInstance();
             // For old version of Mirasvit Store Credit plugin,
-            // \Magento\Framework\ObjectManagerInterface can not create instance of \Mirasvit\Credit\Api\Config\CalculationConfigInterface properly
+            // \Magento\Framework\ObjectManagerInterface can not create instance of \Mirasvit\Credit\Api\Config\CalculationConfigInterface properly,
             // so we use \Mirasvit\Credit\Service\Config\CalculationConfig instead.
             if (empty($miravitCalculationConfig)) {
                 $miravitCalculationConfig = $this->mirasvitStoreCreditCalculationConfigLegacy->getInstance();
             }
+
             if ($miravitCalculationConfig->isTaxIncluded() || $miravitCalculationConfig->IsShippingIncluded()) {
                 return $miravitBalanceAmount;
             }
@@ -1187,6 +1204,86 @@ class Discount extends AbstractHelper
         return $this->aheadworksCustomerStoreCreditManagement
                     ->getInstance()
                     ->getCustomerStoreCreditBalance($customerId);
+    }
+    
+    
+    
+    /**
+     * Check if Aheadworks_Giftcard module is available
+     *
+     * @return bool true if module is available, else false
+     */
+    public function isAheadworksGiftcardAvailable()
+    {
+        return $this->aheadworksGiftcardRepository->isAvailable();
+    }
+    
+    /**
+     * Load the Aheadworks Giftcard by code
+     *
+     * @param $giftcardCode
+     * @param $websiteId
+     *
+     * @return Coupon
+     */
+    public function loadAheadworksGiftcard($giftcardCode, $websiteId)
+    {
+        if (!$this->isAheadworksGiftcardAvailable()) {
+            return null;
+        }
+
+        try {
+            return $this->aheadworksGiftcardRepository->getInstance()->getByCode($giftcardCode, $websiteId);
+        } catch (\Exception $e) {
+            $this->bugsnag->notifyException($e);
+            return null;
+        }
+    }
+    
+    /**
+     * Apply the Aheadworks Giftcard
+     *
+     * @param $giftcardCode
+     * @param $quote
+     *
+     * @return Boolean
+     */
+    public function applyAheadworksGiftcard($giftcardCode, $quote)
+    {
+        if (!$this->isAheadworksGiftcardAvailable()) {
+            return false;
+        }
+
+        try {
+            $quotId = $quote->getId();
+            return $this->aheadworksGiftcardCartService->getInstance()->set($quotId, $giftcardCode, false);
+        } catch (\Exception $e) {
+            $this->bugsnag->notifyException($e);
+            return false;
+        }
+    }
+    
+    /**
+     * Remove the Aheadworks Giftcard
+     *
+     * @param $giftcardCode
+     * @param $quote
+     *
+     * @return Boolean
+     */
+    public function removeAheadworksGiftcard($giftcardCode, $quote)
+    {
+        if (!$this->isAheadworksGiftcardAvailable()) {
+            return false;
+        }
+
+        try {
+            $quotId = $quote->getId();
+            return $this->aheadworksGiftcardCartService->getInstance()->remove($quotId, $giftcardCode, false);
+        } catch (\Exception $e) {
+            $this->bugsnag->notifyException($e);
+            return false;
+        }
     }
 
     /**
