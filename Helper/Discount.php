@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Bolt magento2 plugin
  *
@@ -812,6 +812,23 @@ class Discount extends AbstractHelper
         }
 
         return $quote->getCreditAmountUsed() > 0 && $this->getMirasvitStoreCreditUsedAmount($quote) > 0;
+    }
+    
+    public function getMirasvitStoreCreditCalculationConfigInstance()
+    {
+        if (!$this->mirasvitStoreCreditCalculationConfig->isAvailable()) {
+            return null;
+        }
+        
+        $miravitCalculationConfig = $this->mirasvitStoreCreditCalculationConfig->getInstance();
+        // For old version of Mirasvit Store Credit plugin,
+        // \Magento\Framework\ObjectManagerInterface can not create instance of \Mirasvit\Credit\Api\Config\CalculationConfigInterface properly,
+        // so we use \Mirasvit\Credit\Service\Config\CalculationConfig instead.
+        if (empty($miravitCalculationConfig)) {
+            $miravitCalculationConfig = $this->mirasvitStoreCreditCalculationConfigLegacy->getInstance();
+        }
+        
+        return $miravitCalculationConfig;
     }
 
     /**

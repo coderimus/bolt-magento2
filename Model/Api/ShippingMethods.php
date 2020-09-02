@@ -711,7 +711,10 @@ class ShippingMethods implements ShippingMethodsInterface
             }
 
             $discountAmount = $shippingAddress->getShippingDiscountAmount();
-
+            
+            $mirasvitStoreCreditShippingDiscountAmount = $this->sessionHelper->getCheckoutSession()->getMirasvitStoreCreditShippingDiscountAmount(0);
+            $discountAmount -= $mirasvitStoreCreditShippingDiscountAmount;
+            
             $cost        = $shippingAddress->getShippingAmount() - $discountAmount;
             $roundedCost = CurrencyUtils::toMinor($cost, $quote->getQuoteCurrencyCode());
 
