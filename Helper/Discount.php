@@ -172,6 +172,11 @@ class Discount extends AbstractHelper
      * @var ThirdPartyModuleFactory
      */
     protected $mirasvitRewardsBalanceHelper;
+    
+    /**
+     * @var ThirdPartyModuleFactory
+     */
+    protected $mirasvitRewardsCheckoutHelper;
 
     /**
      * @var ThirdPartyModuleFactory
@@ -282,6 +287,7 @@ class Discount extends AbstractHelper
      * @param ThirdPartyModuleFactory $mirasvitRewardsModelConfig
      * @param ThirdPartyModuleFactory $mirasvitStoreCreditConfig
      * @param ThirdPartyModuleFactory $mirasvitRewardsBalanceHelper
+     * @param ThirdPartyModuleFactory $mirasvitRewardsCheckoutHelper
      * @param ThirdPartyModuleFactory $mageplazaGiftCardCollection
      * @param ThirdPartyModuleFactory $mageplazaGiftCardFactory
      * @param ThirdPartyModuleFactory $amastyRewardsResourceQuote
@@ -324,6 +330,7 @@ class Discount extends AbstractHelper
         ThirdPartyModuleFactory $mirasvitRewardsSpendRulesListHelper,
         ThirdPartyModuleFactory $mirasvitRewardsModelConfig,
         ThirdPartyModuleFactory $mirasvitRewardsBalanceHelper,
+        ThirdPartyModuleFactory $mirasvitRewardsCheckoutHelper,
         ThirdPartyModuleFactory $mageplazaGiftCardCollection,
         ThirdPartyModuleFactory $mageplazaGiftCardFactory,
         ThirdPartyModuleFactory $amastyRewardsResourceQuote,
@@ -365,6 +372,7 @@ class Discount extends AbstractHelper
         $this->mirasvitRewardsSpendRulesListHelper = $mirasvitRewardsSpendRulesListHelper;
         $this->mirasvitRewardsModelConfig = $mirasvitRewardsModelConfig;
         $this->mirasvitRewardsBalanceHelper = $mirasvitRewardsBalanceHelper;
+        $this->mirasvitRewardsCheckoutHelper = $mirasvitRewardsCheckoutHelper;
         $this->mageplazaGiftCardCollection = $mageplazaGiftCardCollection;
         $this->mageplazaGiftCardFactory = $mageplazaGiftCardFactory;
         $this->amastyRewardsResourceQuote = $amastyRewardsResourceQuote;
@@ -980,8 +988,7 @@ class Discount extends AbstractHelper
             $spendAmount = $miravitRewardsPurchase->getSpendAmount();
             // If the setting "Allow to spend points for shipping charges" is set to Yes,
             // we need to send full balance to the Bolt server.
-            $mirasvitRewardsModelConfig = $this->mirasvitRewardsModelConfig->getInstance();            
-            if($mirasvitRewardsModelConfig->getGeneralIsSpendShipping()) {
+            if($this->isMirasvitRewardsApplyShipping()) {
                 $mirasvitRewardsSpendRulesListHelper = $this->mirasvitRewardsSpendRulesListHelper->getInstance();
                 $balancePoints = $this->mirasvitRewardsBalanceHelper->getInstance()->getBalancePoints($quote->getCustomerId());
                 $customer = $this->customerFactory->create()->load($quote->getCustomer()->getId());
@@ -1011,6 +1018,37 @@ class Discount extends AbstractHelper
         }
         
         return $spendAmount;
+    }
+    
+    /**
+     * Update Mirasvit rewards points for quote
+     */
+    public function refreshMirasvitRewardsAmount($quote) {
+        if (!$this->mirasvitRewardsPurchaseHelper->isAvailable()) {
+            return;
+        }
+        
+        try{           
+            if($this->isMirasvitRewardsApplyShipping()) {
+                $balancePoints = $this->mirasvitRewardsBalanceHelper->getInstance()->getBalancePoints($quote->getCustomerId());
+                $miravitRewardsPurchase = $this->mirasvitRewardsPurchaseHelper->getInstance()->getByQuote($quote);
+                $this->mirasvitRewardsCheckoutHelper->getInstance()->updatePurchase($miravitRewardsPurchase, $balancePoints);
+            }
+        } catch (\Exception $e) {
+            $this->bugsnag->notifyException($e);
+        }
+    }
+    
+    /**
+     * Check if allow to spend Mirasvit rewards points for shipping charges
+     * @return bool
+     */
+    public function isMirasvitRewardsApplyShipping() {
+        if (!$this->mirasvitRewardsModelConfig->isAvailable()) {
+            return false;
+        }
+        
+        return $this->mirasvitRewardsModelConfig->getInstance()->getGeneralIsSpendShipping();
     }
 
     /**
