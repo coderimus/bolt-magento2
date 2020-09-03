@@ -32,6 +32,7 @@ use \Magento\Framework\App\State as AppState;
 use Bolt\Boltpay\Helper\Log as LogHelper;
 use Magento\SalesRule\Model\CouponFactory;
 use Magento\SalesRule\Model\RuleRepository;
+use Magento\Customer\Model\CustomerFactory;
 
 /**
  * Boltpay Discount helper class
@@ -156,6 +157,21 @@ class Discount extends AbstractHelper
      * @var ThirdPartyModuleFactory
      */
     protected $mirasvitRewardsPurchaseHelper;
+    
+    /**
+     * @var ThirdPartyModuleFactory
+     */
+    protected $mirasvitRewardsSpendRulesListHelper;
+    
+    /**
+     * @var ThirdPartyModuleFactory
+     */
+    protected $mirasvitRewardsModelConfig;
+    
+    /**
+     * @var ThirdPartyModuleFactory
+     */
+    protected $mirasvitRewardsBalanceHelper;
 
     /**
      * @var ThirdPartyModuleFactory
@@ -236,6 +252,11 @@ class Discount extends AbstractHelper
      * @var RuleRepository
      */
     protected $ruleRepository;
+    
+    /**
+     * @var CustomerFactory
+     */
+    protected $customerFactory;
 
     /**
      * Discount constructor.
@@ -257,7 +278,10 @@ class Discount extends AbstractHelper
      * @param ThirdPartyModuleFactory $mirasvitStoreCreditCalculationConfig
      * @param ThirdPartyModuleFactory $mirasvitStoreCreditCalculationConfigLegacy
      * @param ThirdPartyModuleFactory $mirasvitRewardsPurchaseHelper
+     * @param ThirdPartyModuleFactory $mirasvitRewardsSpendRulesListHelper
+     * @param ThirdPartyModuleFactory $mirasvitRewardsModelConfig
      * @param ThirdPartyModuleFactory $mirasvitStoreCreditConfig
+     * @param ThirdPartyModuleFactory $mirasvitRewardsBalanceHelper
      * @param ThirdPartyModuleFactory $mageplazaGiftCardCollection
      * @param ThirdPartyModuleFactory $mageplazaGiftCardFactory
      * @param ThirdPartyModuleFactory $amastyRewardsResourceQuote
@@ -276,6 +300,7 @@ class Discount extends AbstractHelper
      * @param LogHelper               $logHelper
      * @param CouponFactory           $couponFactory
      * @param RuleRepository          $ruleRepository
+     * @param CustomerFactory         $customerFactory
      */
     public function __construct(
         Context $context,
@@ -296,6 +321,9 @@ class Discount extends AbstractHelper
         ThirdPartyModuleFactory $mirasvitStoreCreditCalculationConfigLegacy,
         ThirdPartyModuleFactory $mirasvitStoreCreditConfig,
         ThirdPartyModuleFactory $mirasvitRewardsPurchaseHelper,
+        ThirdPartyModuleFactory $mirasvitRewardsSpendRulesListHelper,
+        ThirdPartyModuleFactory $mirasvitRewardsModelConfig,
+        ThirdPartyModuleFactory $mirasvitRewardsBalanceHelper,
         ThirdPartyModuleFactory $mageplazaGiftCardCollection,
         ThirdPartyModuleFactory $mageplazaGiftCardFactory,
         ThirdPartyModuleFactory $amastyRewardsResourceQuote,
@@ -313,7 +341,8 @@ class Discount extends AbstractHelper
         Session $sessionHelper,
         LogHelper $logHelper,
         CouponFactory $couponFactory,
-        RuleRepository $ruleRepository
+        RuleRepository $ruleRepository,
+        CustomerFactory $customerFactory
     ) {
         parent::__construct($context);
         $this->resource = $resource;
@@ -333,6 +362,9 @@ class Discount extends AbstractHelper
         $this->mirasvitStoreCreditCalculationConfigLegacy = $mirasvitStoreCreditCalculationConfigLegacy;
         $this->mirasvitStoreCreditConfig = $mirasvitStoreCreditConfig;
         $this->mirasvitRewardsPurchaseHelper = $mirasvitRewardsPurchaseHelper;
+        $this->mirasvitRewardsSpendRulesListHelper = $mirasvitRewardsSpendRulesListHelper;
+        $this->mirasvitRewardsModelConfig = $mirasvitRewardsModelConfig;
+        $this->mirasvitRewardsBalanceHelper = $mirasvitRewardsBalanceHelper;
         $this->mageplazaGiftCardCollection = $mageplazaGiftCardCollection;
         $this->mageplazaGiftCardFactory = $mageplazaGiftCardFactory;
         $this->amastyRewardsResourceQuote = $amastyRewardsResourceQuote;
@@ -351,6 +383,7 @@ class Discount extends AbstractHelper
         $this->moduleGiftCardAccount = $moduleGiftCardAccount;
         $this->couponFactory = $couponFactory;
         $this->ruleRepository = $ruleRepository;
+        $this->customerFactory = $customerFactory;
     }
     
     /**
@@ -932,14 +965,52 @@ class Discount extends AbstractHelper
     public function getMirasvitRewardsAmount($quote)
     {
         /** @var \Mirasvit\Rewards\Helper\Purchase $mirasvitRewardsPurchaseHelper */
+        if (!$this->mirasvitRewardsPurchaseHelper->isAvailable()) {
+            return 0;
+        }
+        
         $mirasvitRewardsPurchaseHelper = $this->mirasvitRewardsPurchaseHelper->getInstance();
 
         if (!$mirasvitRewardsPurchaseHelper) {
             return 0;
         }
+     
+        try{
+            $miravitRewardsPurchase = $mirasvitRewardsPurchaseHelper->getByQuote($quote);
+            $spendAmount = $miravitRewardsPurchase->getSpendAmount();
+            // If the setting "Allow to spend points for shipping charges" is set to Yes,
+            // we need to send full balance to the Bolt server.
+            $mirasvitRewardsModelConfig = $this->mirasvitRewardsModelConfig->getInstance();            
+            if($mirasvitRewardsModelConfig->getGeneralIsSpendShipping()) {
+                $mirasvitRewardsSpendRulesListHelper = $this->mirasvitRewardsSpendRulesListHelper->getInstance();
+                $balancePoints = $this->mirasvitRewardsBalanceHelper->getInstance()->getBalancePoints($quote->getCustomerId());
+                $customer = $this->customerFactory->create()->load($quote->getCustomer()->getId());
+                $points = 0;
+                $websiteId = $quote->getStore()->getWebsiteId();
+                $rules = $mirasvitRewardsSpendRulesListHelper->getRuleCollection($websiteId, $customer->getGroupId());
+                if ($rules->count()) {
+                    $pointsMoney = [0];
+                    /** @var \Mirasvit\Rewards\Model\Spending\Rule $rule */
+                    foreach ($rules as $rule) {
+                        $tier = $rule->getTier($customer);
+                        $spendPoints = $tier->getSpendPoints();
+                        if ($spendPoints <= \Mirasvit\Rewards\Helper\Calculation::ZERO_VALUE) {
+                            continue;
+                        }
 
-        $miravitRewardsPurchase = $mirasvitRewardsPurchaseHelper->getByQuote($quote);
-        return $miravitRewardsPurchase->getSpendAmount();
+                        $pointsMoney[] = ($balancePoints / $spendPoints) * $tier->getMonetaryStep($spendAmount);  
+                    }    
+                    $points = max($pointsMoney);
+                }
+                
+                $spendAmount = max($points, $spendAmount);
+            }
+        } catch (\Exception $e) {
+            $this->bugsnag->notifyException($e);
+            return 0;
+        }
+        
+        return $spendAmount;
     }
 
     /**

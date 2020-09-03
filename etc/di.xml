@@ -209,6 +209,27 @@
             <argument name="className" xsi:type="string">Mirasvit\Rewards\Helper\Purchase</argument>
         </arguments>
     </virtualType>
+    
+    <virtualType name="boltMirasvitRewardsBalanceHelper" type="Bolt\Boltpay\Model\ThirdPartyModuleFactory">
+        <arguments>
+            <argument name="moduleName" xsi:type="string">Mirasvit_Rewards</argument>
+            <argument name="className" xsi:type="string">Mirasvit\Rewards\Helper\Balance</argument>
+        </arguments>
+    </virtualType>
+    
+    <virtualType name="boltMirasvitRewardsSpendRulesListHelper" type="Bolt\Boltpay\Model\ThirdPartyModuleFactory">
+        <arguments>
+            <argument name="moduleName" xsi:type="string">Mirasvit_Rewards</argument>
+            <argument name="className" xsi:type="string">Mirasvit\Rewards\Helper\Balance\SpendRulesList</argument>
+        </arguments>
+    </virtualType>
+    
+    <virtualType name="boltMirasvitRewardsModelConfig" type="Bolt\Boltpay\Model\ThirdPartyModuleFactory">
+        <arguments>
+            <argument name="moduleName" xsi:type="string">Mirasvit_Rewards</argument>
+            <argument name="className" xsi:type="string">Mirasvit\Rewards\Model\Config</argument>
+        </arguments>
+    </virtualType>
 
     <type name="Mirasvit\Rewards\Model\Purchase">
         <plugin name="Bolt_Boltpay_Mirasvit_Rewards_Model_PurchasePlugin" type="Bolt\Boltpay\Plugin\Mirasvit\Rewards\Model\PurchasePlugin" sortOrder="1" />
@@ -302,6 +323,9 @@
             <argument name="mirasvitStoreCreditCalculationConfigLegacy" xsi:type="object">boltMirasvitStoreCreditCalculationConfigLegacy</argument>
             <argument name="mirasvitStoreCreditConfig" xsi:type="object">boltMirasvitStoreCreditConfig</argument>
             <argument name="mirasvitRewardsPurchaseHelper" xsi:type="object">boltMirasvitRewardsPurchaseHelper</argument>
+            <argument name="mirasvitRewardsBalanceHelper" xsi:type="object">boltMirasvitRewardsBalanceHelper</argument>
+            <argument name="mirasvitRewardsSpendRulesListHelper" xsi:type="object">boltMirasvitRewardsSpendRulesListHelper</argument>
+            <argument name="mirasvitRewardsModelConfig" xsi:type="object">boltMirasvitRewardsModelConfig</argument>
             <argument name="mageplazaGiftCardCollection" xsi:type="object">boltMageplazaGiftCardCollection</argument>
             <argument name="mageplazaGiftCardFactory" xsi:type="object">boltMageplazaGiftCardFactory</argument>
             <argument name="amastyRewardsResourceQuote" xsi:type="object">boltAmastyRewardsResourceQuote</argument>
