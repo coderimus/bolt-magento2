@@ -46,6 +46,7 @@ use Bolt\Boltpay\Helper\Discount as DiscountHelper;
 use Magento\Directory\Model\Region as RegionModel;
 use Magento\Quote\Model\Quote\TotalsCollector;
 use Bolt\Boltpay\Helper\Order as OrderHelper;
+use Magento\Customer\Model\Session;
 
 /**
  * Discount Code Validation class
@@ -172,6 +173,11 @@ class DiscountCodeValidation implements DiscountCodeValidationInterface
     private $cache;
 
     /**
+     * @var Session
+     */
+    private $customerSession;
+
+    /**
      * DiscountCodeValidation constructor.
      *
      * @param Request                 $request
@@ -198,6 +204,7 @@ class DiscountCodeValidation implements DiscountCodeValidationInterface
      * @param TotalsCollector         $totalsCollector
      * @param OrderHelper             $orderHelper
      * @param CacheInterface          $cache
+     * @param Session                 $customerSession
      */
     public function __construct(
         Request $request,
@@ -223,7 +230,8 @@ class DiscountCodeValidation implements DiscountCodeValidationInterface
         RegionModel $regionModel,
         TotalsCollector $totalsCollector,
         OrderHelper $orderHelper,
-        CacheInterface $cache = null
+        CacheInterface $cache = null,
+        Session $customerSession
     ) {
         $this->request = $request;
         $this->response = $response;
@@ -250,6 +258,7 @@ class DiscountCodeValidation implements DiscountCodeValidationInterface
         $this->orderHelper = $orderHelper;
         $this->cache = $cache ?: \Magento\Framework\App\ObjectManager::getInstance()
                 ->get(\Magento\Framework\App\CacheInterface::class);
+        $this->customerSession = $customerSession;
     }
 
     /**
@@ -444,6 +453,9 @@ class DiscountCodeValidation implements DiscountCodeValidationInterface
                     ->save();
             }
 
+            //Assign Id.Me data from the quote to the customer session object to correct discount */
+            $this->applyIdMeToCustomerSession($parentQuote);
+
             if ($coupon && $coupon->getCouponId()) {
                 if ($this->shouldUseParentQuoteShippingAddressDiscount($couponCode, $immutableQuote, $parentQuote)) {
                     $result = $this->getParentQuoteDiscountResult($couponCode, $coupon, $parentQuote);
@@ -494,6 +506,24 @@ class DiscountCodeValidation implements DiscountCodeValidationInterface
         }
 
         return true;
+    }
+
+    /**
+     * Assign Id.Me data from the quote to the customer session object to correct discount
+     * @param $quote
+     */
+    private function applyIdMeToCustomerSession($quote) {
+        if ($idMeUuid = $quote->getIdmeUuid()) {
+            $this->customerSession->setIdmeUuid($idMeUuid);
+        }
+
+        if ($idMeGroup = $quote->getIdmeGroup()) {
+            $this->customerSession->setIdmeGroup($idMeGroup);
+        }
+
+        if ($idMeSubgroups = $quote->getIdmeSubgroups()) {
+            $this->customerSession->setIdmeSubgroups($idMeSubgroups);
+        }
     }
 
     /**
