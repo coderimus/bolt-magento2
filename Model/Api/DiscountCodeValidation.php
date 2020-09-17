@@ -28,6 +28,7 @@ use Bolt\Boltpay\Model\ErrorResponse as BoltErrorResponse;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Webapi\Exception as WebApiException;
+use Bolt\Boltpay\Exception\BoltException;
 
 /**
  * Discount Code Validation class
@@ -105,11 +106,7 @@ class DiscountCodeValidation extends UpdateCartCommon implements DiscountCodeVal
             $this->requestArray = $requestArray;
 
             $result = $this->validateQuote($immutableQuoteId);
-            if(!$result){
-                // Already sent a response with error, so just return.
-                return false;
-            }
-                
+
             list($parentQuote, $immutableQuote) = $result;
             
             $storeId = $parentQuote->getStoreId();
@@ -157,6 +154,13 @@ class DiscountCodeValidation extends UpdateCartCommon implements DiscountCodeVal
             $this->cache->clean([CartHelper::BOLT_ORDER_TAG . '_' . $parentQuoteId]);
 
             $this->sendSuccessResponse($result, $immutableQuote);
+        } catch (BoltException $e) {
+            $this->sendErrorResponse(
+                $e->getCode(),
+                $e->getMessage(),
+                422
+            );
+            return false;
         } catch (WebApiException $e) {
             $this->bugsnag->notifyException($e);
             $this->sendErrorResponse(
