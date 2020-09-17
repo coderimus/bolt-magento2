@@ -179,7 +179,7 @@ class UpdateCart extends UpdateCartCommon implements UpdateCartInterface
             $this->sendErrorResponse(
                 $e->getCode(),
                 $e->getMessage(),
-                $e->getHttpCode()
+                422
             );
 
             return false;
