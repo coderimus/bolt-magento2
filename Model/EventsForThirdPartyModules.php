@@ -24,6 +24,7 @@ use Bolt\Boltpay\ThirdPartyModules\IDme\GroupVerification as IDme_GroupVerificat
 use Bolt\Boltpay\ThirdPartyModules\Amasty\Rewards as Amasty_Rewards;
 use Bolt\Boltpay\ThirdPartyModules\MageWorld\RewardPoints as MW_RewardPoints;
 use Bolt\Boltpay\ThirdPartyModules\Bss\StoreCredit as Bss_StoreCredit;
+use Bolt\Boltpay\ThirdPartyModules\Listrak\Remarketing as Listrak_Remarketing;
 use Bolt\Boltpay\Helper\Bugsnag;
 use Exception;
 
@@ -165,6 +166,23 @@ class EventsForThirdPartyModules
                 ],
             ],
         ],
+        "getAdditionalHtml" => [
+            "listeners" => [
+                [
+                    "module" => "Listrak_Remarketing",
+                    "boltClass" => Listrak_Remarketing::class,
+                ],
+            ],
+        ],
+        "getOnEmailEnter" => [
+            "listeners" => [
+                [
+                    "module" => "Listrak_Remarketing",
+                    "boltClass" => Listrak_Remarketing::class,
+                ],
+            ],
+        ]
+
     ];
 
     /**
